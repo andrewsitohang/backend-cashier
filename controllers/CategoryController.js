@@ -1,8 +1,8 @@
-import category from '../models/Category.js';
+import Category from '../models/Category.js';
 
 const index = async (req, res) => {
     try {
-        const categories = await category.find( {status: 'active'} );
+        const categories = await Category.find( {status: 'active'} );
         if (!categories) {throw {code: 500, message: 'index category failed'}};
 
         return res.status(200).json({
@@ -24,16 +24,16 @@ const store = async (req, res) => {
 
         const title = req.body.title;
         
-        const newCategory = new category({ 
+        const newCategory = new Category({ 
             title: title,
         });
-        const Category = await newCategory.save();
+        const category = await newCategory.save();
 
-        if (!Category) {throw {code: 500, message: 'Store category failed'}};
+        if (!category) {throw {code: 500, message: 'Store category failed'}};
         
         return res.status(200).json({
             status: true,
-            Category
+            category
         });       
     } catch (err) {
         return res.status(err.code).json({

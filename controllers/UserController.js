@@ -1,4 +1,4 @@
-import user from '../models/User.js';
+import User from '../models/User.js';
 import bcrypt from 'bcrypt';
 import { isEmailExist, isEmailExistWithUserId } from '../libraries/isEmailExist.js';
 
@@ -11,7 +11,7 @@ const index = async (req, res) => {
             page: req.query.page || 1,
             limit: req.query.limit || 10, 
         }
-        const users = await user.paginate(find, options);
+        const users = await User.paginate(find, options);
         if (!users) {throw {code: 404, message: 'USER_NOT_FOUND'}}
         return res.status(200).json({
             status: true,
@@ -45,24 +45,23 @@ const store = async (req, res) => {
         let salt = await bcrypt.genSalt(10);
         let hash = await bcrypt.hash(req.body.password, salt);
 
-        const newUser = new user({ 
+        const newUser = new User({ 
             fullname: req.body.fullname,
             email: req.body.email,
             password: hash,
             role: req.body.role
         });
-        const User = await newUser.save();
+        const user = await newUser.save();
 
-        if (!User) {throw {code: 500, message: 'USER_REGISTER_FAILED'}};
+        if (!user) {throw {code: 500, message: 'USER_REGISTER_FAILED'}};
         
         return res.status(200).json({
             status: true,
             massage: 'USER_REGISTER_SUCCESS',
-            User
+            user
         });       
     } catch (err) {
-        if(!err.code) { err.code = 500 }
-        return res.status(err.code).json({
+        return res.status(err.code || 500).json({
             status: false,
             message: err.message
         });       
@@ -73,11 +72,11 @@ const show = async (req, res) => {
     try {
         if(!req.params.id) { throw { code: 428, message: "ID is required" }}
 
-        const User = await user.findById(req.params.id);
-        if (!User) {throw {code: 404, message: 'USER_NOT_FOUND'}}
+        const user = await User.findById(req.params.id);
+        if (!user) {throw {code: 404, message: 'USER_NOT_FOUND'}}
         return res.status(200).json({
             status: true,
-            user : User
+            user
         });
     } catch (err) {
         return res.status(err.code || 500).json({
@@ -115,14 +114,14 @@ const update = async (req, res) => {
         }
 
         // update user
-        const User = await user.findByIdAndUpdate(req.params.id, fields, { new: true })
+        const user = await User.findByIdAndUpdate(req.params.id, fields, { new: true })
 
-        if (!User) {throw {code: 500, message: 'USER_UPDATE_FAILED'}};
+        if (!user) {throw {code: 500, message: 'USER_UPDATE_FAILED'}};
         
         return res.status(200).json({
             status: true,
             massage: 'USER_UPDATE_SUCCESS',
-            User
+            user
         });       
     } catch (err) {
         if(!err.code) { err.code = 500 }
@@ -138,17 +137,16 @@ const destroy = async (req, res) => {
         if(!req.params.id) { throw { code: 428, message: "ID is required" }}
 
         // delete user
-        const User = await user.findByIdAndDelete(req.params.id);
-        if (!User) {throw {code: 500, message: 'USER_DELETE_FAILED'}};
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) {throw {code: 500, message: 'USER_DELETE_FAILED'}};
         
         return res.status(200).json({
             status: true,
             massage: 'USER_DELETE_SUCCESS',
-            user: User
+            user
         });       
     } catch (err) {
-        if(!err.code) { err.code = 500 }
-        return res.status(err.code).json({
+        return res.status(err.code || 500).json({
             status: false,
             message: err.message
         });       
